@@ -1,0 +1,10 @@
+cell,mean,sd,q025,q975
+Arithmetic_TechnicalProcessing,-1.8638,0.0799,-2.0229,-1.7095
+Arithmetic_NumericalModeling,-0.4725,0.07,-0.6076,-0.3351
+Arithmetic_AbstractModeling,-1.2869,0.0752,-1.431,-1.1393
+Geometry_TechnicalProcessing,-0.8198,0.0736,-0.9642,-0.674
+Geometry_NumericalModeling,-0.7002,0.0705,-0.8369,-0.5615
+Geometry_AbstractModeling,-0.267,0.0694,-0.405,-0.1337
+Algebra_TechnicalProcessing,-0.9933,0.0731,-1.1324,-0.8508
+Algebra_NumericalModeling,-0.2011,0.0686,-0.3307,-0.0651
+Algebra_AbstractModeling,0.2206,0.0684,0.0881,0.3538

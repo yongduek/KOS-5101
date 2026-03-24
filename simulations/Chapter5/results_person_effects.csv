@@ -1,0 +1,8 @@
+predictor,effect
+Program 1 (Hauptschule),-0.6229
+Program 3 (Realschule),0.6883
+Program 4 (Gymnasium),1.7239
+Female × Prog 1,-0.0528
+Female × Prog 3,-0.1922
+Female × Prog 4,-0.2248
+SES (HiSES),0.1781

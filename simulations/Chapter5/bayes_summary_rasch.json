@@ -1,0 +1,8 @@
+{
+  "model": "Rasch (Bayesian)",
+  "sigma_mean": 1.243,
+  "sigma_sd": 0.0404,
+  "variance_mean": 1.5467,
+  "r_beta": 0.9963,
+  "r_theta": 0.9045
+}

@@ -1,0 +1,6 @@
+{
+  "model": "Latent Regression Rasch (Bayesian)",
+  "sigma_e_mean": 0.8297,
+  "var_resid_mean": 0.6895,
+  "pct_explained_mean": 53.9
+}

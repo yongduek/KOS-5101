@@ -1,0 +1,2 @@
+model,deviance,AIC,BIC,n_params,person_variance
+Latent Regression LLTM,17484.8,17518.8,17600.0,17,0.673

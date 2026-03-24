@@ -1,0 +1,7 @@
+{
+  "model": "Latent Regression LLTM (Bayesian)",
+  "sigma_e_mean": 0.8295,
+  "var_resid_mean": 0.6891,
+  "pct_explained_mean": 53.8,
+  "r_theta_recovery": 0.9225
+}

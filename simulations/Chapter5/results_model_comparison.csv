@@ -1,0 +1,5 @@
+model,deviance,AIC,BIC,n_params,person_variance
+Rasch,17990.8,18028.8,18119.6,19,1.532
+Latent Regression Rasch,17471.1,17523.1,17647.4,26,0.675
+LLTM,18004.5,18024.5,18072.3,10,1.531
+Latent Regression LLTM,17484.8,17518.8,17600.0,17,0.673
