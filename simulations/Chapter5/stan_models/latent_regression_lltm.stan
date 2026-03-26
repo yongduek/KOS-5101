@@ -2,13 +2,13 @@
 // ============================================================
 // Model 4: Latent Regression LLTM (Doubly Explanatory)
 //
-//   η_pi = Σ_j ϑ_j Z_pj + θ_p − Σ_k β_k X_ik
-//   P(Y_pi = 1) = logit⁻¹(η_pi)
+//   eta_pi = sum_j vartheta_j * Z_pj + theta_p - sum_k beta_k * X_ik
+//   P(Y_pi = 1) = logit_inv(eta_pi)
 //
-//   θ_p     ~ Normal(0, σ_ε²)   [residual person effect]
-//   β_k     ~ Normal(0, 5²)
-//   ϑ_j     ~ Normal(0, 5²)
-//   σ_ε     ~ Half-Cauchy(0, 2.5)
+//   theta_p    ~ Normal(0, sigma_e^2)  [residual person effect]
+//   beta_k     ~ Normal(0, 5^2)
+//   vartheta_j ~ Normal(0, 5^2)
+//   sigma_e    ~ Half-Cauchy(0, 2.5)
 // ============================================================
 
 data {
@@ -24,22 +24,22 @@ data {
 parameters {
   vector[N] theta;            // residual person effects
   vector[K] beta_k;           // item property effects
-  vector[J] vartheta;         // person property effects (ϑ)
+  vector[J] vartheta;         // person property effects (vartheta)
   real<lower=0> sigma_e;      // residual person SD
 }
 
 model {
-  // ── Priors ──
+  // -- Priors --
   sigma_e  ~ cauchy(0, 2.5);
   beta_k   ~ normal(0, 5);
   vartheta ~ normal(0, 5);
   theta    ~ normal(0, sigma_e);
 
-  // ── Pre-compute ──
+  // -- Pre-compute --
   vector[N] theta_fixed = Z * vartheta;
   vector[I] beta_pred   = X * beta_k;
 
-  // ── Likelihood ──
+  // -- Likelihood --
   for (p in 1:N) {
     real person_ability = theta_fixed[p] + theta[p];
     for (i in 1:I) {

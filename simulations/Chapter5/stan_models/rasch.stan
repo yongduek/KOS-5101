@@ -2,12 +2,12 @@
 // ============================================================
 // Model 1: The Rasch Model (Doubly Descriptive)
 //
-//   η_pi = θ_p − β_i
-//   P(Y_pi = 1 | θ_p, β_i) = logit⁻¹(θ_p − β_i)
+//   eta_pi = theta_p - beta_i
+//   P(Y_pi = 1 | theta_p, beta_i) = logit_inv(theta_p - beta_i)
 //
-//   θ_p ~ Normal(0, σ²)
-//   β_i ~ Normal(0, 5²)     [weakly informative prior]
-//   σ   ~ Half-Cauchy(0, 2.5)
+//   theta_p ~ Normal(0, sigma^2)
+//   beta_i  ~ Normal(0, 5^2)     [weakly informative prior]
+//   sigma   ~ Half-Cauchy(0, 2.5)
 // ============================================================
 
 data {
@@ -23,12 +23,12 @@ parameters {
 }
 
 model {
-  // ── Priors ──
+  // -- Priors --
   sigma ~ cauchy(0, 2.5);            // half-Cauchy (constrained positive)
   beta  ~ normal(0, 5);              // weakly informative
   theta ~ normal(0, sigma);          // hierarchical prior on persons
 
-  // ── Likelihood ──
+  // -- Likelihood --
   for (p in 1:N) {
     for (i in 1:I) {
       Y[p, i] ~ bernoulli_logit(theta[p] - beta[i]);
