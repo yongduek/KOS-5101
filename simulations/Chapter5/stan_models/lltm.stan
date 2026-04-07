@@ -1,13 +1,13 @@
 // lltm.stan
 // ============================================================
-// Model 3: Linear Logistic Test Model — LLTM (Item Explanatory)
+// Model 3: Linear Logistic Test Model (LLTM) -- Item Explanatory
 //
-//   η_pi = θ_p − Σ_k β_k X_ik
-//   P(Y_pi = 1) = logit⁻¹(η_pi)
+//   eta_pi = theta_p - sum_k beta_k * X_ik
+//   P(Y_pi = 1) = logit_inv(eta_pi)
 //
-//   θ_p   ~ Normal(0, σ²)
-//   β_k   ~ Normal(0, 5²)
-//   σ     ~ Half-Cauchy(0, 2.5)
+//   theta_p ~ Normal(0, sigma^2)
+//   beta_k  ~ Normal(0, 5^2)
+//   sigma   ~ Half-Cauchy(0, 2.5)
 // ============================================================
 
 data {
@@ -25,15 +25,15 @@ parameters {
 }
 
 model {
-  // ── Priors ──
+  // -- Priors --
   sigma  ~ cauchy(0, 2.5);
   beta_k ~ normal(0, 5);
   theta  ~ normal(0, sigma);
 
-  // ── Predicted item difficulties ──
+  // -- Predicted item difficulties --
   vector[I] beta_pred = X * beta_k;
 
-  // ── Likelihood ──
+  // -- Likelihood --
   for (p in 1:N) {
     for (i in 1:I) {
       Y[p, i] ~ bernoulli_logit(theta[p] - beta_pred[i]);

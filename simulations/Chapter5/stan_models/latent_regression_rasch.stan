@@ -2,13 +2,13 @@
 // ============================================================
 // Model 2: Latent Regression Rasch Model (Person Explanatory)
 //
-//   η_pi = Σ_j ϑ_j Z_pj + θ_p − β_i
-//   P(Y_pi = 1) = logit⁻¹(η_pi)
+//   eta_pi = sum_j vartheta_j * Z_pj + theta_p - beta_i
+//   P(Y_pi = 1) = logit_inv(eta_pi)
 //
-//   θ_p     ~ Normal(0, σ_ε²)   [residual person effect]
-//   β_i     ~ Normal(0, 5²)
-//   ϑ_j     ~ Normal(0, 5²)
-//   σ_ε     ~ Half-Cauchy(0, 2.5)
+//   theta_p    ~ Normal(0, sigma_e^2)  [residual person effect]
+//   beta_i     ~ Normal(0, 5^2)
+//   vartheta_j ~ Normal(0, 5^2)
+//   sigma_e    ~ Half-Cauchy(0, 2.5)
 // ============================================================
 
 data {
@@ -22,18 +22,18 @@ data {
 parameters {
   vector[N] theta;                // residual person effects
   vector[I] beta;                 // item difficulties
-  vector[J] vartheta;            // person predictor effects (ϑ)
+  vector[J] vartheta;            // person predictor effects (vartheta)
   real<lower=0> sigma_e;          // residual person SD
 }
 
 model {
-  // ── Priors ──
+  // -- Priors --
   sigma_e  ~ cauchy(0, 2.5);
   beta     ~ normal(0, 5);
   vartheta ~ normal(0, 5);
   theta    ~ normal(0, sigma_e);
 
-  // ── Likelihood ──
+  // -- Likelihood --
   {
     // Pre-compute fixed person contribution
     vector[N] theta_fixed = Z * vartheta;
