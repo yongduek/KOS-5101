@@ -10,6 +10,41 @@ functions {
         return categorical_logit_lpmf(y | eta);
     }
 
+        real partial_pcm_lpmf( 
+                array[] int slice_n,
+                int start,
+                int end,
+                array[,] int x_items,
+                array[,] int m_items,
+                array[,] int y_items,
+                vector theta_x,
+                vector theta_m,
+                vector theta_y,
+                vector item_loc_x,
+                vector item_loc_m,
+                vector item_loc_y,
+                array[] vector steps_x,
+                array[] vector steps_m,
+                array[] vector steps_y,
+                int K_x,
+                int K_m,
+                int K_y
+        ) {
+                real lp = 0;
+                for (n in start:end) {
+                        for (j in 1:K_x) {
+                                lp += pcm_item_lpmf(x_items[n, j] | theta_x[n], item_loc_x[j], steps_x[j]);
+                        }
+                        for (j in 1:K_m) {
+                                lp += pcm_item_lpmf(m_items[n, j] | theta_m[n], item_loc_m[j], steps_m[j]);
+                        }
+                        for (j in 1:K_y) {
+                                lp += pcm_item_lpmf(y_items[n, j] | theta_y[n], item_loc_y[j], steps_y[j]);
+                        }
+                }
+                return lp;
+        }
+
 }
 data {
     int<lower=1> N;
@@ -18,10 +53,19 @@ data {
     int<lower=1> K_y;
     int<lower=1> C;
 
+        int<lower=1> grainsize;
+
     array[N, K_x] int<lower=1, upper=4> x_items;
     array[N, K_m] int<lower=1, upper=5> m_items;
     array[N, K_y] int<lower=1, upper=5> y_items;
     matrix[N, C] covs;
+}
+
+transformed data {
+        array[N] int seq_n;
+        for (n in 1:N) {
+                seq_n[n] = n;
+        }
 }
 
 parameters {
@@ -94,17 +138,26 @@ model {
     }
 
 
-        for (n in 1:N) {
-                for (j in 1:K_x) {
-                        target += pcm_item_lpmf(x_items[n, j] | theta_x[n], item_loc_x[j], steps_x[j]);
-                }
-                for (j in 1:K_m) {
-                        target += pcm_item_lpmf(m_items[n, j] | theta_m[n], item_loc_m[j], steps_m[j]);
-                }
-                for (j in 1:K_y) {
-                        target += pcm_item_lpmf(y_items[n, j] | theta_y[n], item_loc_y[j], steps_y[j]);
-                }
-        }
+        target += reduce_sum(
+                partial_pcm_lpmf,
+                seq_n,
+                grainsize,
+                x_items,
+                m_items,
+                y_items,
+                theta_x,
+                theta_m,
+                theta_y,
+                item_loc_x,
+                item_loc_m,
+                item_loc_y,
+                steps_x,
+                steps_m,
+                steps_y,
+                K_x,
+                K_m,
+                K_y
+        );
 
 }
 generated quantities {

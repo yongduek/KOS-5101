@@ -215,3 +215,6 @@ homeworks/compare_means_equal_std.exe
 homeworks/compare_means_equal_std.stan
 irt/rasch_known_item_ability.exe
 irt/rasch_known_item_ability.stan
+simulations/kim2025/bsem_outputs/
+simulations/kim2025/bsem_outputs_test/
+simulations/kim2025/mediation_bsem.exe

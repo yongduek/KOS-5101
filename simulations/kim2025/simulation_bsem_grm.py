@@ -33,17 +33,22 @@ def load_item_data():
 
 
 def write_stan_model():
-        """Write Stan code. Only recompile if changed."""
+        """Write Stan code for Graded Response Model. Only recompile if changed."""
         stan_code = r"""
 functions {
-    real pcm_item_lpmf(int y, real theta, real item_location, vector step_difficulty) {
-        int n_cat = num_elements(step_difficulty) + 1;
-        vector[n_cat] eta;
-        eta[1] = 0;
-        for (c in 2:n_cat) {
-            eta[c] = eta[c - 1] + theta - item_location - step_difficulty[c - 1];
+    real grm_item_lpmf(int y, real theta, vector thresholds) {
+        int n_cat = num_elements(thresholds) + 1;
+        vector[n_cat + 1] cum_prob;
+        
+        // Cumulative probabilities: P(Y >= k)
+        cum_prob[1] = 1.0;
+        for (k in 2:n_cat) {
+            cum_prob[k] = inv_logit(thresholds[k - 1] - theta);
         }
-        return categorical_logit_lpmf(y | eta);
+        cum_prob[n_cat + 1] = 0.0;
+        
+        // P(Y = y) = P(Y >= y) - P(Y >= y+1)
+        return log(cum_prob[y] - cum_prob[y + 1]);
     }
 }
 data {
@@ -72,30 +77,13 @@ parameters {
     real<lower=0> sigma_m;
     real<lower=0> sigma_y;
 
-    vector[K_x] item_loc_x;
-    vector[K_m] item_loc_m;
-    vector[K_y] item_loc_y;
-
-    array[K_x] ordered[3] raw_steps_x;
-    array[K_m] ordered[4] raw_steps_m;
-    array[K_y] ordered[4] raw_steps_y;
+    array[K_x] vector[3] threshold_x;
+    array[K_m] vector[4] threshold_m;
+    array[K_y] vector[4] threshold_y;
 }
 transformed parameters {
     vector[N] mu_m = alpha_m + a * theta_x + covs * beta_m;
     vector[N] mu_y = alpha_y + cp * theta_x + b * theta_m + covs * beta_y;
-    array[K_x] vector[3] steps_x;
-    array[K_m] vector[4] steps_m;
-    array[K_y] vector[4] steps_y;
-
-    for (j in 1:K_x) {
-        steps_x[j] = to_vector(raw_steps_x[j]) - mean(to_vector(raw_steps_x[j]));
-    }
-    for (j in 1:K_m) {
-        steps_m[j] = to_vector(raw_steps_m[j]) - mean(to_vector(raw_steps_m[j]));
-    }
-    for (j in 1:K_y) {
-        steps_y[j] = to_vector(raw_steps_y[j]) - mean(to_vector(raw_steps_y[j]));
-    }
 }
 model {
     theta_x ~ std_normal();
@@ -112,53 +100,49 @@ model {
     sigma_m ~ exponential(1);
     sigma_y ~ exponential(1);
 
-    item_loc_x ~ normal(0, 1);
-    item_loc_m ~ normal(0, 1);
-    item_loc_y ~ normal(0, 1);
-
     for (j in 1:K_x) {
-        raw_steps_x[j] ~ normal(0, 1.5);
+        threshold_x[j] ~ normal(0, 1.5);
     }
     for (j in 1:K_m) {
-        raw_steps_m[j] ~ normal(0, 1.5);
+        threshold_m[j] ~ normal(0, 1.5);
     }
     for (j in 1:K_y) {
-        raw_steps_y[j] ~ normal(0, 1.5);
+        threshold_y[j] ~ normal(0, 1.5);
     }
 
     for (n in 1:N) {
         for (j in 1:K_x) {
-            target += pcm_item_lpmf(x_items[n, j] | theta_x[n], item_loc_x[j], steps_x[j]);
+            target += grm_item_lpmf(x_items[n, j] | theta_x[n], to_vector(threshold_x[j]));
         }
         for (j in 1:K_m) {
-            target += pcm_item_lpmf(m_items[n, j] | theta_m[n], item_loc_m[j], steps_m[j]);
+            target += grm_item_lpmf(m_items[n, j] | theta_m[n], to_vector(threshold_m[j]));
         }
         for (j in 1:K_y) {
-            target += pcm_item_lpmf(y_items[n, j] | theta_y[n], item_loc_y[j], steps_y[j]);
+            target += grm_item_lpmf(y_items[n, j] | theta_y[n], to_vector(threshold_y[j]));
         }
     }
 }
 generated quantities {
     real indirect_effect = a * b;
     real total_effect = cp + a * b;
-        vector[N] log_lik;
+    vector[N] log_lik;
 
-        for (n in 1:N) {
-                real lp = 0;
-                for (j in 1:K_x) {
-                        lp += pcm_item_lpmf(x_items[n, j] | theta_x[n], item_loc_x[j], steps_x[j]);
-                }
-                for (j in 1:K_m) {
-                        lp += pcm_item_lpmf(m_items[n, j] | theta_m[n], item_loc_m[j], steps_m[j]);
-                }
-                for (j in 1:K_y) {
-                        lp += pcm_item_lpmf(y_items[n, j] | theta_y[n], item_loc_y[j], steps_y[j]);
-                }
-                log_lik[n] = lp;
+    for (n in 1:N) {
+        real lp = 0;
+        for (j in 1:K_x) {
+            lp += grm_item_lpmf(x_items[n, j] | theta_x[n], to_vector(threshold_x[j]));
         }
+        for (j in 1:K_m) {
+            lp += grm_item_lpmf(m_items[n, j] | theta_m[n], to_vector(threshold_m[j]));
+        }
+        for (j in 1:K_y) {
+            lp += grm_item_lpmf(y_items[n, j] | theta_y[n], to_vector(threshold_y[j]));
+        }
+        log_lik[n] = lp;
+    }
 }
 """
-        stan_name = "mediation_bsem.stan"
+        stan_name = "mediation_bsem_grm.stan"
         stan_file = Path(stan_name)
         if stan_file.exists():
                 existing_code = stan_file.read_text(encoding="utf-8")
@@ -209,9 +193,9 @@ def save_figures(idata):
         az.style.use("arviz-darkgrid")
 
         az.plot_trace(idata, var_names=["a", "b", "cp", "indirect_effect"], compact=True)
-        plt.suptitle("Item-level PCM BSEM Trace Plots", y=1.02, fontsize=14)
+        plt.suptitle("Item-level GRM BSEM Trace Plots", y=1.02, fontsize=14)
         plt.tight_layout()
-        plt.savefig("fig_bsem_pcm_trace.png", dpi=150, bbox_inches="tight")
+        plt.savefig("fig_bsem_grm_trace.png", dpi=150, bbox_inches="tight")
         plt.close()
 
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -223,9 +207,9 @@ def save_figures(idata):
                 ax=ax,
                 color="#3c8d5a",
         )
-        ax.set_title("PCM BSEM Posterior of Indirect Effect", fontsize=13)
+        ax.set_title("GRM BSEM Posterior of Indirect Effect", fontsize=13)
         plt.tight_layout()
-        plt.savefig("fig_bsem_pcm_indirect.png", dpi=150, bbox_inches="tight")
+        plt.savefig("fig_bsem_grm_indirect.png", dpi=150, bbox_inches="tight")
         plt.close()
 
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -236,9 +220,9 @@ def save_figures(idata):
                 hdi_prob=0.95,
                 ax=ax,
         )
-        ax.set_title("PCM BSEM Structural Effects", fontsize=13)
+        ax.set_title("GRM BSEM Structural Effects", fontsize=13)
         plt.tight_layout()
-        plt.savefig("fig_bsem_pcm_forest.png", dpi=150, bbox_inches="tight")
+        plt.savefig("fig_bsem_grm_forest.png", dpi=150, bbox_inches="tight")
         plt.close()
 
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -251,22 +235,22 @@ def save_figures(idata):
         )
         ax.set_title("Centered Covariate Effects on Latent M and Y", fontsize=12)
         plt.tight_layout()
-        plt.savefig("fig_bsem_pcm_covariates.png", dpi=150, bbox_inches="tight")
+        plt.savefig("fig_bsem_grm_covariates.png", dpi=150, bbox_inches="tight")
         plt.close()
 
 
 def parse_args():
         parser = argparse.ArgumentParser(
-                description="Run the item-level PCM Bayesian SEM mediation model."
+                description="Run the item-level GRM Bayesian SEM mediation model."
         )
         parser.add_argument("--chains", type=int, default=4)
         parser.add_argument("--iter-warmup", type=int, default=1000)
         parser.add_argument("--iter-sampling", type=int, default=1000)
         parser.add_argument("--adapt-delta", type=float, default=0.95)
         parser.add_argument("--max-treedepth", type=int, default=12)
-        parser.add_argument("--output-dir", type=str, default="bsem_outputs")
-        parser.add_argument("--posterior-nc", type=str, default="bsem_posterior.nc")
-        parser.add_argument("--summary-csv", type=str, default="bsem_summary.csv")
+        parser.add_argument("--output-dir", type=str, default="bsem_outputs_grm")
+        parser.add_argument("--posterior-nc", type=str, default="bsem_grm_posterior.nc")
+        parser.add_argument("--summary-csv", type=str, default="bsem_grm_summary.csv")
         return parser.parse_args()
 
 
@@ -291,7 +275,7 @@ def main():
         output_dir.mkdir(parents=True, exist_ok=True)
 
         print("=" * 60)
-        print("Item-level Bayesian SEM with Partial Credit Measurement")
+        print("Item-level Bayesian SEM with Graded Response Measurement")
         print("=" * 60)
 
         df_rses, df_iss, df_rssis, centered_covs, raw_cov_means = load_item_data()
@@ -361,10 +345,10 @@ def main():
         print(f"  {posterior_nc_path}")
         if summary is not None:
                 print(f"  {summary_csv_path}")
-        print("  fig_bsem_pcm_trace.png")
-        print("  fig_bsem_pcm_indirect.png")
-        print("  fig_bsem_pcm_forest.png")
-        print("  fig_bsem_pcm_covariates.png")
+        print("  fig_bsem_grm_trace.png")
+        print("  fig_bsem_grm_indirect.png")
+        print("  fig_bsem_grm_forest.png")
+        print("  fig_bsem_grm_covariates.png")
 
 
 if __name__ == "__main__":
