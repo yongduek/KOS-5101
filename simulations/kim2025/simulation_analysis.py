@@ -1,8 +1,9 @@
 import os
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+from split_combined_data import load_and_split_combined_data
 
 def ols(X_mat, y):
     """
@@ -25,11 +26,13 @@ def main():
     print("1. Loading integer item responses and recreating totals")
     print("=" * 60)
     
-    # We use the integer responses to reconstruct the dataset
-    df_rses = pd.read_csv("rses_simulated.csv")
-    df_rssis = pd.read_csv("rssis_simulated.csv")
-    df_iss = pd.read_csv("iss_simulated.csv")
-    df_covs = pd.read_csv("covariates_simulated.csv")
+    # Load the combined dataset once and split it into scale/item blocks plus covariates.
+    _, df_rses, df_rssis, df_iss, df_other = load_and_split_combined_data(
+        "combined_simulated.csv",
+        include_totals=False,
+    )
+    covariate_columns = ["Gender", "Academic_Year", "TOPIK_Level", "Economic_Status"]
+    df_covs = df_other.loc[:, covariate_columns].copy()
     
     # Reverse-coding handling for items marked with _REV
     for col in df_rses.columns:

@@ -213,3 +213,13 @@ dif/stan_models/rasch_1pl.exe
 dif/stan_models/dif_rasch.exe
 homeworks/compare_means_equal_std.exe
 homeworks/compare_means_equal_std.stan
+irt/rasch_known_item_ability.exe
+irt/rasch_known_item_ability.stan
+simulations/kim2025/bsem_outputs/
+simulations/kim2025/bsem_outputs_test/
+simulations/kim2025/mediation_bsem.exe
+simulations/kim2025/data_combined_simulated.csv
+simulations/kim2025/data_covariates_simulated.csv
+simulations/kim2025/data_iss_simulated.csv
+simulations/kim2025/data_rses_simulated.csv
+simulations/kim2025/data_rssis_simulated.csv

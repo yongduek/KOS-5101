@@ -2,6 +2,11 @@
 
 Simulation of Kim 2025 paper.
 
+## Data generation
+- Run `sim_generate_data.py` to create CSV data files. 
+- The statistics will be almost the same as those reported in the paper.
+- The items with revered question is denoted by column names with '_REV' suffix.
+
 ## Bayesian validation summary
 
 Three Bayesian variants were implemented and executed in the global Python 3.12 environment.
