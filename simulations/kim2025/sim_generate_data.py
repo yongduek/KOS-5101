@@ -125,17 +125,35 @@ def main():
     df_rssis = pd.DataFrame(rssis_data, columns=[f"RSSIS_{i}" for i in range(1, 37)])
     df_iss   = pd.DataFrame(iss_data,   columns=iss_cols)
 
-    # --- Exact covariate counts from paper (N=394) ---
-    # Gender: Male=188 (47.7%), Female=206 (52.3%)
-    gender_arr = np.array([1] * 188 + [2] * 206)
-    # Academic Year: 1yr=38 (9.6%), 2yr=159 (40.4%), 3yr=101 (25.6%), 4yr=96 (24.4%)
-    year_arr   = np.array([1] * 38 + [2] * 159 + [3] * 101 + [4] * 96)
-    # TOPIK: Beginner=49 (12.4%), Advanced=345 (87.6%)
-    topik_arr  = np.array([0] * 49  + [1] * 345)
-    # Economic Status: Low=25 (6.3%), Mid=290 (73.6%), High=79 (20.1%)
-    eco_arr    = np.array([1] * 25  + [2] * 290 + [3] * 79)
+    # --- Covariate generation (exact counts from paper, N=394) ---
 
-    np.random.shuffle(gender_arr)
+    # Gender: Male=188 (47.7%), Female=206 (52.3%)
+    # Generated correlated with RSSIS and ISS to match the paper's regression:
+    #   β(gender→RSSIS) ≈ −.26  (females have lower acculturative stress)
+    #   β(gender→ISS)   ≈ +.15  (females have higher intercultural sensitivity)
+    #
+    # Method: probit-style latent score from z-scored scales.
+    # Biserial correction: r_pb = r_latent × φ(z_c)/√(p·q)
+    #   φ(Φ⁻¹(0.477)) ≈ 0.399,  √(0.477·0.523) ≈ 0.499  →  factor ≈ 0.799
+    # Solving the 2×2 linear system (accounting for r(RSSIS,ISS)=−0.49) gives:
+    #   a = −0.306 (weight on z_rssis), b = 0.038 (weight on z_iss)
+    #   noise_std = √(1 − 0.1065) ≈ 0.945
+    z_rssis = (rssis_scores - rssis_scores.mean()) / rssis_scores.std()
+    z_iss   = (iss_scores   - iss_scores.mean())   / iss_scores.std()
+    gender_latent = (-0.306 * z_rssis
+                     + 0.038 * z_iss
+                     + 0.945 * np.random.normal(0, 1, N))
+    # Assign exact counts: 188 lowest scores → Male (1), 206 highest → Female (2)
+    gender_arr             = np.full(N, 2, dtype=int)           # default: female
+    gender_arr[np.argsort(gender_latent)[:188]] = 1            # 188 males
+
+    # Academic Year: 1yr=38, 2yr=159, 3yr=101, 4yr=96  (shuffled randomly)
+    year_arr   = np.array([1]*38  + [2]*159 + [3]*101 + [4]*96)
+    # TOPIK: Beginner=49, Advanced=345
+    topik_arr  = np.array([0]*49  + [1]*345)
+    # Economic Status: Low=25, Mid=290, High=79
+    eco_arr    = np.array([1]*25  + [2]*290 + [3]*79)
+
     np.random.shuffle(year_arr)
     np.random.shuffle(topik_arr)
     np.random.shuffle(eco_arr)
@@ -188,6 +206,13 @@ def main():
     print(f"  TOPIK   — Beg: {t[0]} [49]  Adv: {t[1]} [345]")
     e = df_covariates["Economic_Status"].value_counts().sort_index()
     print(f"  EconSt  — Low: {e[1]} [25]  Mid: {e[2]} [290]  High: {e[3]} [79]")
+
+    # Point-biserial correlations of gender with scales (targets: ≈−.26, ≈+.15)
+    g_centered = gender_arr - gender_arr.mean()
+    r_g_rssis  = float(np.corrcoef(g_centered, rssis_sum)[0, 1])
+    r_g_iss    = float(np.corrcoef(g_centered, iss_sum)[0, 1])
+    print(f"\n  r(gender, RSSIS) = {r_g_rssis:.2f}  [target ≈ −0.26]")
+    print(f"  r(gender, ISS)   = {r_g_iss:.2f}  [target ≈ +0.15]")
 
 
 if __name__ == "__main__":
