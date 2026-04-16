@@ -253,3 +253,5 @@ irt/rasch_1pl_mle.exe
 irt/rasch_1pl_mle.stan
 misc/multilevel_group_intercept_slope.stan
 misc/multilevel_group_intercept_slope.exe
+misc/process_model4.stan
+misc/process_model4.exe
