@@ -255,3 +255,6 @@ misc/multilevel_group_intercept_slope.stan
 misc/multilevel_group_intercept_slope.exe
 misc/process_model4.stan
 misc/process_model4.exe
+irt/update_nb.py
+irt/nb_extract.md
+irt/extract_nb.py
