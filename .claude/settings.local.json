@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(jupyter nbconvert:*)",
+      "Bash(ls /c/Users/yongd/Downloads/KOS-5101/misc/*.ipynb)",
+      "Bash(python3:*)"
+    ]
+  }
+}
