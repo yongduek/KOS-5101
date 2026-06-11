@@ -1,0 +1,34 @@
+method = laplace
+  laplace
+    mode = /home/atruergod/python/26-1/26-1/cmdstan_out/grm_unidim_b-opt-20260501021342.csv
+    jacobian = true (Default)
+    draws = 1000 (Default)
+    calculate_lp = true (Default)
+id = 1 (Default)
+data
+  file = /tmp/tmp6n07bdp9/m_d4t2yc.json
+init = 2 (Default)
+random
+  seed = 11
+output
+  file = /home/atruergod/python/26-1/26-1/cmdstan_out/grm_unidim_b-20260501021342.csv
+  diagnostic_file =  (Default)
+  refresh = 100 (Default)
+  sig_figs = 8 (Default)
+  profile_file = profile.csv (Default)
+  save_cmdstan_config = false (Default)
+num_threads = 1 (Default)
+
+Calculating Hessian
+Calculating inverse of Cholesky factor
+Generating draws
+iteration: 0
+iteration: 100
+iteration: 200
+iteration: 300
+iteration: 400
+iteration: 500
+iteration: 600
+iteration: 700
+iteration: 800
+iteration: 900
