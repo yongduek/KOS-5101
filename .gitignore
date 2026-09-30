@@ -289,3 +289,7 @@ hierarchical/lecture_materials/latex/slides.out
 hierarchical/lecture_materials/latex/slides.toc
 hierarchical/lecture_materials/latex/slides.aux
 gaussian_mean_estimation.exe
+intro-bayes/bernoulli_probability_estimation.stan
+test_hello.py
+intro-bayes/bernoulli_probability_estimation.exe
+tmp_numpyro_runcheck.py
