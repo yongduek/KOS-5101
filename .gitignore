@@ -293,3 +293,17 @@ intro-bayes/bernoulli_probability_estimation.stan
 test_hello.py
 intro-bayes/bernoulli_probability_estimation.exe
 tmp_numpyro_runcheck.py
+intro-bayes/irt_intro_unknown.stan
+intro-bayes/irt_intro_known.stan
+intro-bayes/irt_1item_1person.stan
+intro-bayes/irt_1item_1person.exe
+intro-bayes/irt_1item_1person_sum0.stan
+intro-bayes/irt_1item_1person_sum0.exe
+intro-bayes/irt_1item_1person_rotated.stan
+intro-bayes/irt_1item_1person_rotated.exe
+intro-bayes/irt_1item_1person_known_delta.stan
+intro-bayes/irt_1item_1person_known_delta.exe
+intro-bayes/irt_1item_1person_ident.stan
+intro-bayes/irt_1item_1person_ident.exe
+intro-bayes/bernoulli_logistic_estimation.stan
+intro-bayes/bernoulli_logistic_estimation.exe
